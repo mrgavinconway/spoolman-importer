@@ -9,7 +9,7 @@ from jsonschema import validate, ValidationError
 load_dotenv()
 
 # Spoolman instance URL (loaded from .env)
-spoolman_url = os.getenv("spoolman_url")
+spoolman_url = os.getenv("SPOOLMAN_URL") or os.getenv("spoolman_url")
 
 # Function to send POST request to create a filament
 def create_filament(filament):
