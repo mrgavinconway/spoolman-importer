@@ -9,7 +9,7 @@ from jsonschema import validate, ValidationError
 load_dotenv()
 
 # Spoolman instance URL (loaded from .env)
-spoolman_url = os.getenv("SPOOLMAN_URL")
+spoolman_url = os.getenv("spoolman_url")
 
 # Function to send POST request to create a filament
 def create_filament(filament):
@@ -120,6 +120,15 @@ def create_data():
     filament_creation_results = {"created": 0, "merged": 0}
     for item in filaments:
         manufacturer_name = item["manufacturer"]
+
+        if manufacturer_name not in existing_vendors:
+            print(f"Vendor missing after refresh, creating now: {manufacturer_name}")
+            response = requests.post(f"{spoolman_url}/api/v1/vendor", json={"name": manufacturer_name})
+            if response.status_code not in (200, 201):
+                print(f"Skipping filament; failed to create vendor: {manufacturer_name}. Error: {response.text}")
+                continue
+            existing_vendors[manufacturer_name] = response.json()
+
         vendor_id = existing_vendors[manufacturer_name]["id"]
 
         filament_name = item["name"]
@@ -145,7 +154,7 @@ def create_data():
             continue
 
         # Ensure spool_weight is greater than 0
-        spool_weight = item.get("spool_weight", 1)  # Default to 1 if not provided or invalid
+        spool_weight = item.get("spool_weight") or 1
         if spool_weight <= 0:
             spool_weight = 1
 
